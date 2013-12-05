@@ -57,7 +57,7 @@ ssh_identity()
 # turn in student work
 make_rendu()
 {
-	pushd "${HOME}/rendu/$repository"
+	cd "${HOME}/rendu/$repository"
 	if [ $? -eq 1 ]
 	then
 		warning "[WARNING] Does your repository exist ?"
@@ -65,23 +65,20 @@ make_rendu()
 		exit 1;
 	fi
 	rendu
-	popd
 }
 
 # list all the file on the server
 checkout()
 {
 	mkdir -p /tmp/random;
-	pushd /tmp/random;
+	cd /tmp/random;
 	rm -rf ${repository};
     git clone "${login}@git.epitech.eu:/${login}/${repository}" > /dev/null;
-    pushd /tmp/random/${repository};
+    cd ${repository};
     echo "Theses files are on the server :";
     ls -la | grep -v .git;
     cd ..;
 	rm -rf ${repository};
-	popd
-	popd
 }
 
 # check acl rights
