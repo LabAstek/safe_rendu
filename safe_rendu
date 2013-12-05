@@ -103,7 +103,7 @@ moulinette_right()
 }
 
 ssh_identity
-#make_rendu
+make_rendu
 printf "\n=====\n"
 printf "Checking if $RED$repository$STD is correctly turned in by $RED$login$STD login"
 printf "\n=====\n\n"
