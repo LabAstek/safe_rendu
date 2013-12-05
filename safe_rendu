@@ -75,7 +75,7 @@ checkout()
 	pushd /tmp/random;
 	rm -rf ${repository};
     git clone "${login}@git.epitech.eu:/${login}/${repository}" > /dev/null;
-    pushd ${repository};
+    pushd /tmp/random/${repository};
     echo "Theses files are on the server :";
     ls -la | grep -v .git;
     cd ..;
