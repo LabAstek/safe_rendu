@@ -31,28 +31,16 @@ else
 	read repository
 fi
 
+step()
+{
+	printf "\n=====\n"
+	printf "$1"
+	printf "\n=====\n\n"
+}
+
 warning() {	printf "${RED}$1${STD}\n"; }
 
 validate() { printf "${GREEN}$1${STD}\n"; }
-
-# this function is used to get permission to clone the student repository.
-ssh_identity()
-{
-	printf "ssh identity : "
-	if [ -z "${SSH_AGENT_PID}" ]
-	then
-		echo "ssh-agent call"
-		eval `ssh-agent`
-	fi
-	if [ ! -f "${HOME}/.ssh/config" ]; then echo "Host git git.epitech.eu git.epitech.net
-     ForwardAgent yes" > "${HOME}/.ssh/config"
-    else
-	grep -q 'git.epitech.' "${HOME}/.ssh/config" || echo "Host git git.epitech.eu git.epitech.net
-     ForwardAgent yes" > "${HOME}/.ssh/config"
-    fi
-	ssh-add ~/.ssh/id_rsa
-	validate "done."
-}
 
 # turn in student work
 make_rendu()
@@ -67,18 +55,52 @@ make_rendu()
 	rendu
 }
 
+get_diff()
+{
+	if [[ `diff $1 $2 | wc -l` -eq 0 ]]
+	then
+		validate "No diff"
+		return 0
+	else
+		warning	"files differ !"
+		diff $1 $2
+		return 1
+	fi
+}
+
+ssh_key_check()
+{
+	cat ~/.ssh/id_rsa_blih.pub > .rsa.local
+	blih -u $login sshkey list > .rsa.serv
+	get_diff .rsa.local .rsa.serv
+}
+
 # list all the file on the server
 checkout()
 {
+	if [[ -z $SSH_AUTH_SOCK ]]
+	then
+		echo "-> ssh-agent"
+		eval `ssh-agent`
+	fi
 	mkdir -p /tmp/random;
 	cd /tmp/random;
 	rm -rf ${repository};
     git clone "${login}@git.epitech.eu:/${login}/${repository}" > /dev/null;
+    if [[ $? -ne 0 ]]
+    then 
+    	warning "Could not clone the repository"
+    	exit -1;
+    fi
     cd ${repository};
-    echo "Theses files are on the server :";
-    ls -la | grep -v .git;
-    cd ..;
-	rm -rf ${repository};
+    ls -R > /tmp/random/diff.serv
+    echo "--Files on the server :";
+    cat /tmp/random/diff.serv
+    cd ${HOME}/rendu/${repository};
+    ls -R > /tmp/random/diff.local
+    echo "--Making diff between local and server";
+    get_diff /tmp/random/diff.local /tmp/random/diff.serv
+	#rm -rf ${repository};
 }
 
 # check acl rights
@@ -102,13 +124,11 @@ moulinette_right()
 	moulinette_right
 }
 
-ssh_identity
+
 make_rendu
-printf "\n=====\n"
-printf "Checking if $RED$repository$STD is correctly turned in by $RED$login$STD login"
-printf "\n=====\n\n"
+step "Checking sshkey..."
+ssh_key_check
+step "Checking if $RED$repository$STD is correctly turned in by $RED$login$STD login"
 checkout
-printf "\n=====\n"
-printf "Checking if the right for the moulinette are set"
-printf "\n=====\n\n"
+step "Checking if the right for the moulinette are set"
 moulinette_right
